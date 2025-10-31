@@ -24,3 +24,41 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.9;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+}
+.animate-float {
+  animation: float 2.2s ease-in-out infinite;
+}
+.animate-float-slow {
+  animation: float-slow 3s ease-in-out infinite;
+}
+.animate-twinkle {
+  animation: twinkle 1.8s ease-in-out infinite;
+}
