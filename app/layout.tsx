@@ -1,5 +1,6 @@
 import "./globals.css";
 import Header from "@/components/Header";
+import Home from "@/components/Home";
 
 export const metadata = {
   title: "pixel-art-gallery",
@@ -9,8 +10,9 @@ export const metadata = {
 export default function RootLayout({}: { children: React.ReactNode }) {
   return (
     <html lang="tr">
-      <body className="min-h-dvh bg-zinc-950 text-zinc-100">
+      <body className="min-h-dvh bg-[#0f1020] text-zinc-100">
         <Header />
+        <Home />
       </body>
     </html>
   );
