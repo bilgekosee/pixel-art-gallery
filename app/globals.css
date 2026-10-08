@@ -1,64 +1,236 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* One wall tone for the whole page, so the nav, entrance, salon and about read as one room. */
+  --wall: #ece6dc;
+  --wall-shade: #e4ddd1;
+  --floor: #d9cfc2;
+  --ink: #26222c;
+  --ink-soft: #6f6878;
+  --line: #ddd5ca;
+  --accent: #d9694c;
+
+  --mat-lavender: #e7dff4;
+  --mat-peach: #fbe3d6;
+  --mat-mint: #d9efe3;
+  --mat-butter: #f8edc8;
+  --mat-sky: #dde9f6;
+
+  --frame-ink: #2b2730;
+  --frame-oak: #cfb48c;
+  --frame-white: #fdfcf9;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-wall: var(--wall);
+  --color-wall-shade: var(--wall-shade);
+  --color-floor: var(--floor);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --font-serif: var(--font-instrument-serif);
+  --font-sans: var(--font-inter);
+  --font-pixel: var(--font-press-start);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f1020;
-    --foreground: #ededed;
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--wall);
+  color: var(--ink);
 }
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* Faint plaster texture: fine grain for the paint, and a much larger, softer noise for uneven patches. */
+:root {
+  --plaster-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.25 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --plaster-patches: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0 0.33 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+
+/* Plain gallery wall. */
+.gallery-wall {
+  background:
+    var(--plaster-grain),
+    var(--plaster-patches),
+    var(--wall);
+}
+
+/* The entrance shares the same wall, only shaded away from the featured piece so its spotlight
+   reads as light. The shading fades out towards the top and bottom edges, so there's no seam
+   with the nav above or the salon below. Needs `relative isolate` on the section. */
+.entrance-wall {
+  background:
+    var(--plaster-grain),
+    var(--plaster-patches),
+    var(--wall);
+}
+
+.entrance-wall::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 90% at 72% 45%, transparent 25%, rgb(50 38 26 / 0.13));
+  mask-image: linear-gradient(transparent, #000 22%, #000 70%, transparent);
+}
+
+/* The ceiling spot on the featured piece, built only from soft, stacked ellipses (no hard
+   shapes or clipping), each fading to nothing well inside the box so nothing gets cut off:
+   a bright scallop where the beam lands, a taller wash below it, and the pool around the frame.
+   Sits behind the frame. */
+.featured-spotlight {
+  --light: 255 248 232;
+  position: absolute;
+  inset: -70% -75% -45%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 16% 12% at 50% 26%,
+      rgb(var(--light) / 0.55) 0%,
+      rgb(var(--light) / 0.3) 40%,
+      rgb(var(--light) / 0.1) 70%,
+      rgb(var(--light) / 0) 100%
+    ),
+    radial-gradient(
+      ellipse 24% 34% at 50% 36%,
+      rgb(var(--light) / 0.5) 0%,
+      rgb(var(--light) / 0.3) 35%,
+      rgb(var(--light) / 0.12) 65%,
+      rgb(var(--light) / 0.03) 85%,
+      rgb(var(--light) / 0) 100%
+    ),
+    radial-gradient(
+      ellipse 33% 30% at 50% 52%,
+      rgb(var(--light) / 0.95) 0%,
+      rgb(var(--light) / 0.75) 30%,
+      rgb(var(--light) / 0.4) 55%,
+      rgb(var(--light) / 0.12) 78%,
+      rgb(var(--light) / 0.03) 90%,
+      rgb(var(--light) / 0) 100%
+    );
+}
+
+/* ---------- Frames ----------
+   .frame        moulding: bevelled edges (lit top-left, shaded bottom-right) and a shadow
+                 cast down the wall by the ceiling spots.
+   .mat          the mount board; the frame's lip throws a little shadow onto it.
+   .mat-window   the bevelled cut in the mount, with its bright paper core. */
+.frame {
+  padding: var(--frame-w, 8px);
+  transition: box-shadow 300ms ease;
+  box-shadow:
+    inset 1.5px 1.5px 0 rgb(255 255 255 / 0.35),
+    inset -1.5px -1.5px 0 rgb(0 0 0 / 0.22),
+    0 1px 1px rgb(38 34 44 / 0.2),
+    0 12px 16px -6px rgb(38 34 44 / 0.28),
+    0 28px 36px -18px rgb(38 34 44 / 0.22);
+}
+
+/* Lift on hover is driven by framer-motion; the shadow spreads as the frame leaves the wall. */
+.frame:is(button, a):hover,
+.frame:is(button, a):focus-visible {
+  box-shadow:
+    inset 1.5px 1.5px 0 rgb(255 255 255 / 0.35),
+    inset -1.5px -1.5px 0 rgb(0 0 0 / 0.22),
+    0 2px 3px rgb(38 34 44 / 0.14),
+    0 22px 28px -10px rgb(38 34 44 / 0.3),
+    0 44px 56px -24px rgb(38 34 44 / 0.24);
+}
+
+.frame-ink {
+  --frame-w: 7px;
+  background: linear-gradient(150deg, #48434e, #1f1c23 55%, #2c2831);
+}
+
+.frame-oak {
+  --frame-w: 10px;
+  background:
+    repeating-linear-gradient(100deg, rgb(110 72 36 / 0.1) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(80deg, rgb(255 240 210 / 0.12) 0 2px, transparent 2px 9px),
+    linear-gradient(155deg, #e6cfa6, #c6a778 50%, #a6875b);
+}
+
+.frame-white {
+  --frame-w: 8px;
+  background: linear-gradient(155deg, #ffffff, #ebe6de);
+}
+
+.mat {
+  box-shadow:
+    inset 0 4px 6px -2px rgb(38 34 44 / 0.3),
+    inset 2px 0 4px -2px rgb(38 34 44 / 0.12),
+    inset 0 0 0 1px rgb(38 34 44 / 0.06);
+}
+
+.mat-window {
+  background: rgb(255 255 255 / 0.22);
+  box-shadow:
+    0 0 0 2px rgb(255 253 248 / 0.95),
+    0 0 0 3px rgb(38 34 44 / 0.08),
+    inset 0 1px 3px rgb(38 34 44 / 0.12);
+}
+
+/* The lightbox draws its own animated backdrop. */
+dialog.lightbox::backdrop {
+  background: transparent;
+}
+
 @keyframes float {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-4px);
-  }
-}
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-7px);
+    transform: translateY(-6px);
   }
 }
 @keyframes twinkle {
   0%,
   100% {
-    opacity: 0.9;
-    filter: brightness(1);
+    opacity: 0.7;
   }
   50% {
     opacity: 1;
-    filter: brightness(1.6);
   }
 }
 .animate-float {
-  animation: float 2.2s ease-in-out infinite;
-}
-.animate-float-slow {
-  animation: float-slow 3s ease-in-out infinite;
+  animation: float 3s ease-in-out infinite;
 }
 .animate-twinkle {
-  animation: twinkle 1.8s ease-in-out infinite;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(6deg);
+  }
+}
+/* Sky companions bob and sway like the others, while still twinkling. */
+.animate-drift-twinkle {
+  animation:
+    drift 3.4s ease-in-out infinite,
+    twinkle 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-twinkle,
+  .animate-drift-twinkle {
+    animation: none;
+  }
 }
