@@ -1,73 +1,96 @@
-import Image from "next/image";
-import { Press_Start_2P } from "next/font/google";
-const pixelFont = Press_Start_2P({ weight: "400", subsets: ["latin"] });
-export default function Header() {
-  return (
-    <header className="relative p-3 bg-[#050A1A] border-b border-zinc-800 flex justify-between items-center text-white overflow-hidden max-[830px]:flex-col  max-[830px]:gap-10 ">
-      <div>
-        <Image
-          src="/logo/logo.png"
-          alt="Logo"
-          width={70}
-          height={70}
-          className="pixelated ml-2"
-        />
-        <div className="absolute top-0 left-[50px] w-[200px] h-full min-[710px]:left-[100px] max-[565px]:left-[30px] ">
-          <Image
-            src="/logo/star1.png"
-            alt="star1"
-            width={50}
-            height={50}
-            className="pixelated absolute top-2 left-10 animate-twinkle pointer-events-none select-none"
-          />
-          <Image
-            src="/logo/star2.png"
-            alt="star2"
-            width={30}
-            height={30}
-            className="pixelated absolute top-10 left-28 animate-twinkle max-[830px]:top-20 max-[565px]:left-15 pointer-events-none select-none"
-          />
-          <Image
-            src="/logo/ghost.png"
-            alt="ghost"
-            width={35}
-            height={35}
-            className="pixelated absolute top-6 left-44 animate-float max-[830px]:left-104 max-[540px]:left-85 max-[460px]:left-70 max-[420px]:left-60 pointer-events-none select-none"
-          />
-          <Image
-            src="/logo/buny.png"
-            alt="buny"
-            width={40}
-            height={40}
-            className="pixelated absolute bottom-1 left-16 animate-float animate-float-slow max-[830px]:left-114 max-[830px]:bottom-5 max-[655px]:left-90 max-[540px]:left-75 max-[420px]:left-55 pointer-events-none select-none"
-          />
-          <Image
-            src="/logo/kahvee.png"
-            alt="buny"
-            width={30}
-            height={30}
-            className="pixelated absolute bottom-2 left-36 animate-float max-[830px]:left-144 max-[830px]:bottom-15 max-[655px]:left-120 max-[540px]:left-100 max-[460px]:left-90 max-[420px]:left-75 max-[345px]:left-65 pointer-events-none select-none"
-          />
-          <Image
-            src="/logo/moon.png"
-            alt="buny"
-            width={50}
-            height={50}
-            className="pixelated absolute bottom-5 left-55 animate-twinkle  max-[830px]:bottom-15 max-[830px]:left-45 max-[600px]:left-35 max-[470px]:left-25 max-[400px]:left-0 pointer-events-none select-none"
-          />
-        </div>
-      </div>
+"use client";
 
-      <div className="">
-        <div
-          className={`${pixelFont.className} flex justify-end items-center gap-10 text-sm max-[460px]:text-xs max-[460px]:gap-5`}
-        >
-          <a>Home</a>
-          <a>Gallery</a>
-          <a>About</a>
-          <a>Connect</a>
-        </div>
+import { motion } from "framer-motion";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { ease } from "./motion";
+
+const links = [
+  { href: "#salon", label: "Salon" },
+  { href: "#about", label: "About" },
+  { href: "#visit", label: "Connect" },
+];
+
+// Tracks which section sits in the middle of the screen. Sections can be nested
+// (#visit lives inside #about), so the innermost one in the middle band wins.
+function useActiveSection(ids: string[]) {
+  const [active, setActive] = useState<string | null>(null);
+
+  useEffect(() => {
+    const order = ["top", ...ids];
+    const inBand = new Map<string, boolean>();
+
+    const update = () => {
+      // The last section is too short to ever reach the middle, so the bottom of the page counts as it.
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      setActive(atBottom ? order[order.length - 1] : (order.findLast((id) => inBand.get(id)) ?? null));
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Entries only report what changed, so keep the full picture ourselves.
+        entries.forEach((entry) => inBand.set(entry.target.id, entry.isIntersecting));
+        update();
+      },
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    order.flatMap((id) => document.getElementById(id) ?? []).forEach((el) => observer.observe(el));
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", update);
+    };
+  }, [ids]);
+
+  return active;
+}
+
+const sectionIds = links.map((link) => link.href.slice(1));
+
+export default function Header() {
+  const active = useActiveSection(sectionIds);
+
+  return (
+    <motion.header
+      initial={{ y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.7, ease }}
+      className="sticky top-0 z-40 border-b border-line/70 bg-wall/80 backdrop-blur-md"
+    >
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3 md:px-8">
+        <a href="#top" className="flex items-center gap-3">
+          <Image src="/logo/logo.png" alt="" width={36} height={36} unoptimized className="pixelated" />
+          <span className="font-serif text-2xl leading-none tracking-tight whitespace-nowrap">
+            Pixel <em className="text-accent">Gallery</em>
+          </span>
+        </a>
+        <nav aria-label="Main">
+          <ul className="flex items-center gap-1 text-sm text-ink-soft md:gap-3">
+            {links.map((link) => {
+              const isActive = active === link.href.slice(1);
+              return (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    aria-current={isActive ? "location" : undefined}
+                    className={`relative block px-2 py-1 transition-colors hover:text-ink md:px-3 ${isActive ? "text-ink" : ""}`}
+                  >
+                    {link.label}
+                    {isActive && (
+                      // Slides between links as you move through the rooms.
+                      <motion.span
+                        layoutId="nav-marker"
+                        transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                        className="absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-accent md:inset-x-3"
+                      />
+                    )}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
       </div>
-    </header>
+    </motion.header>
   );
 }
